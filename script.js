@@ -5,8 +5,61 @@ if (canvas.getContext) {
 }
 
 let loadedFile,
-  binarized = false,
-  binarizedImage;
+  binarized = false;
+
+const hitOrMissThickening = [
+  // 0 stopni
+  [
+    [0, 1, 0],
+    [-1, 1, 1],
+    [-1, -1, 0],
+  ],
+  // 90 stopni
+  [
+    [-1, -1, 0],
+    [-1, 1, 1],
+    [0, 1, 0],
+  ],
+  // 180 stopni
+  [
+    [0, -1, -1],
+    [1, 1, -1],
+    [0, 1, 0],
+  ],
+  // 270 stopni
+  [
+    [0, 1, 0],
+    [1, 1, -1],
+    [0, -1, -1],
+  ],
+];
+
+const hitOrMissThining = [
+  // 0 stopni
+  [
+    [0, 1, 0],
+    [-1, -1, 1],
+    [-1, -1, 0],
+  ],
+  // 90 stopni
+  [
+    [-1, -1, 0],
+    [-1, -1, 1],
+    [0, 1, 0],
+  ],
+  // 180 stopni
+  [
+    [0, -1, -1],
+    [1, -1, -1],
+    [0, 1, 0],
+  ],
+  // 270 stopni
+  [
+    [0, 1, 0],
+    [1, -1, -1],
+    [0, -1, -1],
+  ],
+];
 
 document.getElementById("dragAndDrop").addEventListener(
   "dragover",
@@ -95,35 +148,13 @@ const binarizeImage = (value) => {
   }
   imageData.data = arr;
   ctx.putImageData(imageData, 0, 0);
-  binarizedImage = imageData;
   binarized = true;
-};
-
-const converTo2dArray = (imageData, height, width) => {
-  let arr = [];
-  for (let i = 0; i < imageData.length; i += 4) {
-    arr.push(
-      Math.round(
-        0.3 * imageData[i] + 0.59 * imageData[i + 1] + 0.11 * imageData[i + 2]
-      )
-    );
-  }
-  var outputArray = [];
-  for (let i = 0; i < height; i++) {
-    outputArray.push(Array.from(Array(width)));
-  }
-  for (let x = 0; x < width; x++) {
-    for (let y = 0; y < height; y++) {
-      outputArray[y][x] = arr[x + width * y];
-    }
-  }
-  return outputArray;
 };
 
 const neighboringPixelWithValue = (value, x, y) => {
   for (let i = x - 1; i <= x + 1; i++) {
     for (let j = y - 1; j <= y + 1; j++) {
-      let [R, G, B] = ctx.getImageData(i, j, 1, 1).data;
+      var [R, G, B] = ctx.getImageData(i, j, 1, 1).data;
       if (R === value && G === value && B === value) return true;
     }
   }
@@ -143,10 +174,13 @@ const fillPixelsWithValue = (filteredArray, valueIftrue, valueIfFalse) => {
         pixel.data[1] = valueIfFalse;
         pixel.data[2] = valueIfFalse;
       }
+      pixel.data[3] = 255;
       ctx.putImageData(pixel, i, j);
     }
   }
 };
+
+const hitOrMiss = (x, y, patterns) => {};
 
 const performDilation = () => {
   const filteredArray = [];
@@ -158,6 +192,7 @@ const performDilation = () => {
   }
   fillPixelsWithValue(filteredArray, 0, 255);
 };
+
 const performErosion = () => {
   const filteredArray = [];
   for (let i = 0; i < canvas.width; i++) {
@@ -168,13 +203,33 @@ const performErosion = () => {
   }
   fillPixelsWithValue(filteredArray, 255, 0);
 };
+
 const performOpening = () => {
   performErosion();
   performDilation();
 };
+
 const performClosing = () => {
   performDilation();
   performErosion();
 };
-const performThinning = () => {};
-const performThickening = () => {};
+
+const performThinning = () => {
+  var hitOrMissArray = [];
+  for (let i = 0; i < canvas.width; i++) {
+    hitOrMissArray[i] = [];
+    for (let j = 0; j < canvas.height; j++) {
+      hitOrMissArray[i][j] = hitOrMiss(i, j, hitOrMissThining);
+    }
+  }
+};
+
+const performThickening = () => {
+  var hitOrMissArray = [];
+  for (let i = 0; i < canvas.width; i++) {
+    hitOrMissArray[i] = [];
+    for (let j = 0; j < canvas.height; j++) {
+      hitOrMissArray[i][j] = hitOrMiss(i, j, hitOrMissThickening);
+    }
+  }
+};
