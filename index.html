@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grafika 8 PA</title>
+    <script src="./script.js" defer></script>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <h1 class="heading">Morphology</h1>
+    <div class="tools">
+      <div class="drag-and-drop" id="dragAndDrop">
+        Drag and drop your image here!
+      </div>
+      <input type="range" name="bin" id="bin" min="0" max="255" step="1" />
+
+      <button class="button green" id="binBtn">Binarize</button>
+      <button class="button red" id="reset">Reset</button>
+    </div>
+    <div class="tools">
+      <button id="dilation" class="button">Dilation</button>
+      <button id="erosion" class="button">Erosion</button>
+      <button id="opening" class="button">Opening</button>
+      <button id="closing" class="button">Closing</button>
+      <button id="emboldening" class="button">Emboldening</button>
+      <button id="thinning" class="button">Thinning</button>
+    </div>
+    <canvas width="500" height="500" class="canvas" id="canvas"></canvas>
+  </body>
+</html>
