@@ -14,8 +14,17 @@
       <div class="drag-and-drop" id="dragAndDrop">
         Drag and drop your image here!
       </div>
-      <input type="range" name="bin" id="bin" min="0" max="255" step="1" />
-
+      <input
+        type="range"
+        value="127"
+        name="bin"
+        id="bin"
+        min="0"
+        max="255"
+        step="1"
+        oninput="this.nextElementSibling.value = this.value"
+      />
+      <output>127</output>
       <button class="button green" id="binBtn">Binarize</button>
       <button class="button red" id="reset">Reset</button>
     </div>
@@ -24,7 +33,7 @@
       <button id="erosion" class="button">Erosion</button>
       <button id="opening" class="button">Opening</button>
       <button id="closing" class="button">Closing</button>
-      <button id="emboldening" class="button">Emboldening</button>
+      <button id="thickening" class="button">Thickening</button>
       <button id="thinning" class="button">Thinning</button>
     </div>
     <canvas width="500" height="500" class="canvas" id="canvas"></canvas>
