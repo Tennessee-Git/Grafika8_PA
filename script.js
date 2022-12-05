@@ -10,54 +10,54 @@ let loadedFile,
 const hitOrMissThickening = [
   // 0 stopni
   [
-    [1, 1, 0],
-    [1, -1, 0],
-    [1, 0, -1],
+    [0, 1, 0],
+    [-1, 1, 1],
+    [-1, -1, 0],
   ],
   // 90 stopni
   [
-    [1, 1, 1],
-    [0, -1, 1],
-    [-1, 0, 0],
+    [-1, -1, 0],
+    [-1, 1, 1],
+    [0, 1, 0],
   ],
   // 180 stopni
   [
-    [-1, 0, 1],
-    [0, -1, 1],
-    [0, 1, 1],
+    [0, -1, -1],
+    [1, 1, -1],
+    [0, 1, 0],
   ],
   // 270 stopni
   [
-    [0, 0, -1],
-    [1, -1, 0],
-    [1, 1, 1],
+    [0, 1, 0],
+    [1, 1, -1],
+    [0, -1, -1],
   ],
 ];
 
 const hitOrMissThining = [
   // 0 stopni
   [
-    [-1, -1, -1],
     [0, 1, 0],
-    [1, 1, 1],
+    [-1, -1, 1],
+    [-1, -1, 0],
   ],
   // 90 stopni
   [
-    [1, 0, -1],
-    [1, 1, -1],
-    [1, 0, -1],
+    [-1, -1, 0],
+    [-1, -1, 1],
+    [0, 1, 0],
   ],
   // 180 stopni
   [
-    [1, 1, 1],
+    [0, -1, -1],
+    [1, -1, -1],
     [0, 1, 0],
-    [-1, -1, -1],
   ],
   // 270 stopni
   [
-    [-1, 0, 1],
-    [-1, 1, 1],
-    [-1, 0, 1],
+    [0, 1, 0],
+    [1, -1, -1],
+    [0, -1, -1],
   ],
 ];
 
@@ -181,29 +181,33 @@ const fillPixelsWithValue = (filteredArray, valueIftrue, valueIfFalse) => {
 };
 
 const hitOrMiss = (x, y, patterns) => {
-  var fits;
-  for (let patternIndex = 0; patternIndex < 4; patternIndex++) {
-    var pattern = patterns[patternIndex],
-      index = 0;
+  let fits;
+  // obracamy 4 razy
+  for (let k = 0; k < 4; k++) {
+    // wybieramy odpowiednią macierz dla danego kątu
+    const pattern = patterns[k];
     fits = true;
-    for (let i = x - 1; i < x + 1; i++) {
-      for (let j = y - 1; j < y + 1; j++) {
-        var [R, G, B] = ctx.getImageData(i, j, 1, 1).data;
-        if (
-          pattern[Math.round(index % 3)][Math.round(index / 3)] === 1 &&
-          (R !== 255 || G !== 255 || B !== 255)
-        ) {
-          fits = false;
-        } else if (
-          pattern[Math.round(index % canvas.width)][
-            Math.round(index / canvas.width)
-          ] === -1 &&
-          (R !== 0 || G !== 0 || B !== 0)
-        )
-          index++;
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        const [R, G, B] = ctx.getImageData(x + i - 1, y + j - 1, 1, 1).data;
+        // jeżeli dla pixela mamy ustawiony biały w macierzy (1)
+        if (pattern[i][j] === 1) {
+          // chociaż jeden składowy kolor nie jest biały
+          if (R !== 255 || G !== 255 || B !== 255) {
+            fits = false;
+          }
+          // jeżeli dla pixela mamy ustawiony czarny w macierzy (-1)
+        } else if (pattern[i][j] === -1) {
+          // chociaż jeden składowy kolor nie jest czarny
+          if (R !== 0 || G !== 0 || B !== 0) {
+            fits = false;
+          }
+        }
       }
     }
-    if (fits) return true;
+    if (fits) {
+      return true;
+    }
   }
   return false;
 };
@@ -259,6 +263,7 @@ const performThinning = () => {
       }
     }
   }
+  console.log("Thinning done!");
 };
 
 const performThickening = () => {
@@ -282,4 +287,5 @@ const performThickening = () => {
         }
     }
   }
+  console.log("Thickening done!");
 };
