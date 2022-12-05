@@ -10,54 +10,54 @@ let loadedFile,
 const hitOrMissThickening = [
   // 0 stopni
   [
-    [0, 1, 0],
-    [-1, 1, 1],
-    [-1, -1, 0],
+    [-1, -1, -1],
+    [0, -1, 0],
+    [1, 1, 1],
   ],
   // 90 stopni
   [
-    [-1, -1, 0],
-    [-1, 1, 1],
-    [0, 1, 0],
+    [1, 0, -1],
+    [1, -1, -1],
+    [1, 0, -1],
   ],
   // 180 stopni
   [
-    [0, -1, -1],
-    [1, 1, -1],
-    [0, 1, 0],
+    [1, 1, 1],
+    [0, -1, 0],
+    [-1, -1, -1],
   ],
   // 270 stopni
   [
-    [0, 1, 0],
-    [1, 1, -1],
-    [0, -1, -1],
+    [-1, 0, 1],
+    [-1, -1, 1],
+    [-1, 0, 1],
   ],
 ];
 
 const hitOrMissThining = [
   // 0 stopni
   [
+    [-1, -1, -1],
     [0, 1, 0],
-    [-1, -1, 1],
-    [-1, -1, 0],
+    [1, 1, 1],
   ],
   // 90 stopni
   [
-    [-1, -1, 0],
-    [-1, -1, 1],
-    [0, 1, 0],
+    [1, 0, -1],
+    [1, 1, -1],
+    [1, 0, -1],
   ],
   // 180 stopni
   [
-    [0, -1, -1],
-    [1, -1, -1],
+    [1, 1, 1],
     [0, 1, 0],
+    [-1, -1, -1],
   ],
   // 270 stopni
   [
-    [0, 1, 0],
-    [1, -1, -1],
-    [0, -1, -1],
+    [-1, 0, 1],
+    [-1, 1, 1],
+    [-1, 0, 1],
   ],
 ];
 
@@ -174,40 +174,31 @@ const fillPixelsWithValue = (filteredArray, valueIftrue, valueIfFalse) => {
         pixel.data[1] = valueIfFalse;
         pixel.data[2] = valueIfFalse;
       }
-      pixel.data[3] = 255;
       ctx.putImageData(pixel, i, j);
     }
   }
 };
 
 const hitOrMiss = (x, y, patterns) => {
-  let fits;
-  // obracamy 4 razy
+  var fits;
   for (let k = 0; k < 4; k++) {
-    // wybieramy odpowiednią macierz dla danego kątu
     const pattern = patterns[k];
     fits = true;
     for (let i = 0; i < 3; i++) {
       for (let j = 0; j < 3; j++) {
-        const [R, G, B] = ctx.getImageData(x + i - 1, y + j - 1, 1, 1).data;
-        // jeżeli dla pixela mamy ustawiony biały w macierzy (1)
+        var [R, G, B] = ctx.getImageData(x + i - 1, y + j - 1, 1, 1).data;
         if (pattern[i][j] === 1) {
-          // chociaż jeden składowy kolor nie jest biały
           if (R !== 255 || G !== 255 || B !== 255) {
-            fits = false;
+            return false;
           }
-          // jeżeli dla pixela mamy ustawiony czarny w macierzy (-1)
         } else if (pattern[i][j] === -1) {
-          // chociaż jeden składowy kolor nie jest czarny
           if (R !== 0 || G !== 0 || B !== 0) {
-            fits = false;
+            return false;
           }
         }
       }
     }
-    if (fits) {
-      return true;
-    }
+    if (fits) return true;
   }
   return false;
 };
@@ -217,10 +208,10 @@ const performDilation = () => {
   for (let i = 0; i < canvas.width; i++) {
     filteredArray[i] = [];
     for (let j = 0; j < canvas.height; j++) {
-      filteredArray[i][j] = neighboringPixelWithValue(0, i, j);
+      filteredArray[i][j] = neighboringPixelWithValue(255, i, j);
     }
   }
-  fillPixelsWithValue(filteredArray, 0, 255);
+  fillPixelsWithValue(filteredArray, 255, 0);
 };
 
 const performErosion = () => {
@@ -228,10 +219,10 @@ const performErosion = () => {
   for (let i = 0; i < canvas.width; i++) {
     filteredArray[i] = [];
     for (let j = 0; j < canvas.height; j++) {
-      filteredArray[i][j] = neighboringPixelWithValue(255, i, j);
+      filteredArray[i][j] = neighboringPixelWithValue(0, i, j);
     }
   }
-  fillPixelsWithValue(filteredArray, 255, 0);
+  fillPixelsWithValue(filteredArray, 0, 255);
 };
 
 const performOpening = () => {
@@ -256,9 +247,9 @@ const performThinning = () => {
     for (let y = 0; y < canvas.height; y++) {
       if (hitOrMissArray[x][y]) {
         var pixel = ctx.getImageData(x, y, 1, 1);
-        pixel.data[0] = 255;
-        pixel.data[1] = 255;
-        pixel.data[2] = 255;
+        pixel.data[0] = 0;
+        pixel.data[1] = 0;
+        pixel.data[2] = 0;
         ctx.putImageData(pixel, x, y);
       }
     }
@@ -278,13 +269,12 @@ const performThickening = () => {
     for (let y = 0; y < canvas.height; y++) {
       var pixel = ctx.getImageData(x, y, 1, 1);
       var [R, G, B] = pixel.data;
-      if (R === 255 && G === 255 && B === 255)
-        if (hitOrMissArray[x][y]) {
-          pixel.data[0] = 0;
-          pixel.data[1] = 0;
-          pixel.data[2] = 0;
-          ctx.putImageData(pixel, x, y);
-        }
+      if (R === 0 && G === 0 && B === 0 && hitOrMissArray[x][y]) {
+        pixel.data[0] = 255;
+        pixel.data[1] = 255;
+        pixel.data[2] = 255;
+        ctx.putImageData(pixel, x, y);
+      }
     }
   }
   console.log("Thickening done!");
