@@ -10,54 +10,54 @@ let loadedFile,
 const hitOrMissThickening = [
   // 0 stopni
   [
-    [0, 1, 0],
-    [-1, 1, 1],
-    [-1, -1, 0],
+    [1, 1, 0],
+    [1, -1, 0],
+    [1, 0, -1],
   ],
   // 90 stopni
   [
-    [-1, -1, 0],
-    [-1, 1, 1],
-    [0, 1, 0],
+    [1, 1, 1],
+    [0, -1, 1],
+    [-1, 0, 0],
   ],
   // 180 stopni
   [
-    [0, -1, -1],
-    [1, 1, -1],
-    [0, 1, 0],
+    [-1, 0, 1],
+    [0, -1, 1],
+    [0, 1, 1],
   ],
   // 270 stopni
   [
-    [0, 1, 0],
-    [1, 1, -1],
-    [0, -1, -1],
+    [0, 0, -1],
+    [1, -1, 0],
+    [1, 1, 1],
   ],
 ];
 
 const hitOrMissThining = [
   // 0 stopni
   [
+    [-1, -1, -1],
     [0, 1, 0],
-    [-1, -1, 1],
-    [-1, -1, 0],
+    [1, 1, 1],
   ],
   // 90 stopni
   [
-    [-1, -1, 0],
-    [-1, -1, 1],
-    [0, 1, 0],
+    [1, 0, -1],
+    [1, 1, -1],
+    [1, 0, -1],
   ],
   // 180 stopni
   [
-    [0, -1, -1],
-    [1, -1, -1],
+    [1, 1, 1],
     [0, 1, 0],
+    [-1, -1, -1],
   ],
   // 270 stopni
   [
-    [0, 1, 0],
-    [1, -1, -1],
-    [0, -1, -1],
+    [-1, 0, 1],
+    [-1, 1, 1],
+    [-1, 0, 1],
   ],
 ];
 
@@ -180,7 +180,33 @@ const fillPixelsWithValue = (filteredArray, valueIftrue, valueIfFalse) => {
   }
 };
 
-const hitOrMiss = (x, y, patterns) => {};
+const hitOrMiss = (x, y, patterns) => {
+  var fits;
+  for (let patternIndex = 0; patternIndex < 4; patternIndex++) {
+    var pattern = patterns[patternIndex],
+      index = 0;
+    fits = true;
+    for (let i = x - 1; i < x + 1; i++) {
+      for (let j = y - 1; j < y + 1; j++) {
+        var [R, G, B] = ctx.getImageData(i, j, 1, 1).data;
+        if (
+          pattern[Math.round(index % 3)][Math.round(index / 3)] === 1 &&
+          (R !== 255 || G !== 255 || B !== 255)
+        ) {
+          fits = false;
+        } else if (
+          pattern[Math.round(index % canvas.width)][
+            Math.round(index / canvas.width)
+          ] === -1 &&
+          (R !== 0 || G !== 0 || B !== 0)
+        )
+          index++;
+      }
+    }
+    if (fits) return true;
+  }
+  return false;
+};
 
 const performDilation = () => {
   const filteredArray = [];
@@ -222,6 +248,17 @@ const performThinning = () => {
       hitOrMissArray[i][j] = hitOrMiss(i, j, hitOrMissThining);
     }
   }
+  for (let x = 0; x < canvas.width; x++) {
+    for (let y = 0; y < canvas.height; y++) {
+      if (hitOrMissArray[x][y]) {
+        var pixel = ctx.getImageData(x, y, 1, 1);
+        pixel.data[0] = 255;
+        pixel.data[1] = 255;
+        pixel.data[2] = 255;
+        ctx.putImageData(pixel, x, y);
+      }
+    }
+  }
 };
 
 const performThickening = () => {
@@ -230,6 +267,19 @@ const performThickening = () => {
     hitOrMissArray[i] = [];
     for (let j = 0; j < canvas.height; j++) {
       hitOrMissArray[i][j] = hitOrMiss(i, j, hitOrMissThickening);
+    }
+  }
+  for (let x = 0; x < canvas.width; x++) {
+    for (let y = 0; y < canvas.height; y++) {
+      var pixel = ctx.getImageData(x, y, 1, 1);
+      var [R, G, B] = pixel.data;
+      if (R === 255 && G === 255 && B === 255)
+        if (hitOrMissArray[x][y]) {
+          pixel.data[0] = 0;
+          pixel.data[1] = 0;
+          pixel.data[2] = 0;
+          ctx.putImageData(pixel, x, y);
+        }
     }
   }
 };
